@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Car" ADD COLUMN "brand" TEXT DEFAULT 'Unknown';
+ALTER TABLE "Car" ALTER COLUMN "customerEmail" DROP NOT NULL;
+ALTER TABLE "Car" ALTER COLUMN "brand" DROP DEFAULT;

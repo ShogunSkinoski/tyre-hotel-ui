@@ -13,19 +13,21 @@ interface Car {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  brand: string;
 }
 
 interface CustomerDetailsFormProps {
-  onSave: (car: Omit<Car, 'id' | 'createdAt'>) => void;
+  onSave: (car: Omit<Car, 'id' | 'createdAt' >) => void;
   onCancel: () => void;
 }
 
 export function CustomerDetailsFormComponent({ onSave, onCancel }: CustomerDetailsFormProps) {
-  const [formData, setFormData] = React.useState<Omit<Car, 'id' | 'createdAt'>>({
+  const [formData, setFormData] = React.useState<Omit<Car, 'id' | 'createdAt' >>({
     plate: '',
     customerName: '',
-    customerEmail: '',
+    customerEmail: '',  
     customerPhone: '',
+    brand: '',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,6 +66,17 @@ export function CustomerDetailsFormComponent({ onSave, onCancel }: CustomerDetai
           />
         </div>
 
+        <div>
+          <Label htmlFor="brand">Marka</Label>
+          <Input
+            id="brand"
+            name="brand"
+            value={formData.brand}
+            onChange={handleChange}
+            placeholder="Markayı giriniz"
+            required
+          />
+        </div>
         <div>
           <Label htmlFor="customerName">Müşteri İsmi</Label>
           <Input

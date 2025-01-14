@@ -34,3 +34,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Include backup files in git
+!backups/*.json

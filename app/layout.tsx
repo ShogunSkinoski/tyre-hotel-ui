@@ -4,6 +4,8 @@ import "./globals.css";
 import { HeaderComponent } from "@/components/header";
 import { SidebarComponent } from "@/components/sidebar";
 import { HeaderProvider } from "@/contexts/header-context";
+import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,15 +34,18 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <HeaderProvider>
-          <div className="flex h-screen bg-background">
-            <SidebarComponent />
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <HeaderComponent />
-              <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
-                {children}
-              </main>
+          <TooltipProvider>
+            <div className="flex h-screen bg-background">
+              <SidebarComponent />
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <HeaderComponent />
+                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
+            <Toaster position="top-right" richColors />
+          </TooltipProvider>
         </HeaderProvider>
       </body>
     </html>

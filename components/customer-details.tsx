@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import axios from "axios"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,10 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Search, FileText, Mail, ChevronLeft, ChevronRight, User, Calendar, Phone, Car as CarIcon, Plus } from "lucide-react"
+import { Search, FileText, Mail, ChevronLeft, ChevronRight, User, Calendar, Phone, Car as CarIcon, Plus, Trash2, MessageSquare } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { TyreDetailsForm } from "./tyre-details-form"
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font, Image, pdf } from '@react-pdf/renderer'
+import { TyrePackQRDialog } from './qr-code-dialog'
+import QRCode from 'qrcode'
 
 // Register a font with good Turkish character support
 Font.register({
@@ -97,68 +99,114 @@ const styles = StyleSheet.create({
   accentColor: {
     color: '#3B82F6',
   },
+  qrCode: {
+    width: 100,
+    height: 100,
+    marginTop: 10,
+  },
 })
 
-export const TyrePDFContent: React.FC<TyrePDFContentProps> = ({ car, tyrePacks }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <Text style={styles.header}>Araç Lastik Bilgileri</Text>
-      
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Araç Detayları</Text>
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Plaka Numarası:</Text>
-          <Text style={[styles.value, styles.accentColor]}>{car.plate}</Text>
-        </View>
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Olusturulma Tarihi:</Text>
-          <Text style={styles.value}>{new Date(car.createdAt).toLocaleString('tr-TR')}</Text>
-        </View>
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Müsteri Adı:</Text>
-          <Text style={styles.value}>{car.customerName}</Text>
-        </View>
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Müsteri E-postası:</Text>
-          <Text style={styles.value}>{car.customerEmail}</Text>
-        </View>
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Müsteri Telefonu:</Text>
-          <Text style={styles.value}>{car.customerPhone}</Text>
-        </View>
-      </View>
+export const TyrePDFContent: React.FC<TyrePDFContentProps> = ({ car, tyrePacks }) => {
+  const [qrCodes, setQrCodes] = useState<Record<string, string>>({})
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Lastik Paketleri</Text>
-        {tyrePacks.map((tyrePack, index) => (
-          <View key={tyrePack.id} style={styles.tyrePackContainer}>
-            <Text style={styles.tyrePackTitle}>Lastik Paketi {index + 1}</Text>
-            <View style={styles.infoContainer}>
-              <Text style={styles.label}>Konum:</Text>
-              <Text style={styles.value}>{tyrePack.location}</Text>
-            </View>
-            <View style={styles.infoContainer}>
-              <Text style={styles.label}>Marka:</Text>
-              <Text style={styles.value}>{tyrePack.brand}</Text>
-            </View>
-            <View style={styles.infoContainer}>
-              <Text style={styles.label}>Ebat:</Text>
-              <Text style={styles.value}>{tyrePack.size}</Text>
-            </View>
-            <View style={styles.infoContainer}>
-              <Text style={styles.label}>Sezon:</Text>
-              <Text style={styles.value}>{tyrePack.season}</Text>
-            </View>
-            <View style={styles.infoContainer}>
-              <Text style={styles.label}>Adet:</Text>
-              <Text style={[styles.value, styles.accentColor]}>{tyrePack.count}</Text>
-            </View>
+  useEffect(() => {
+    const generateQRCodes = async () => {
+      const codes: Record<string, string> = {}
+      
+      for (const pack of tyrePacks) {
+        const qrData = JSON.stringify({
+          location: pack.location,
+          brand: pack.brand,
+          size: pack.size,
+          season: pack.season,
+          count: pack.count,
+          car: {
+            plate: car.plate,
+            customer: car.customerName
+          }
+        })
+        
+        try {
+          const qrDataUrl = await QRCode.toDataURL(qrData)
+          codes[pack.location] = qrDataUrl
+        } catch (err) {
+          console.error('QR code generation failed:', err)
+        }
+      }
+      
+      setQrCodes(codes)
+    }
+
+    generateQRCodes()
+  }, [tyrePacks, car])
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.header}>Araç Lastik Bilgileri</Text>
+        
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Araç Detayları</Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Plaka Numarası:</Text>
+            <Text style={[styles.value, styles.accentColor]}>{car.plate}</Text>
           </View>
-        ))}
-      </View>
-    </Page>
-  </Document>
-)
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Olusturulma Tarihi:</Text>
+            <Text style={styles.value}>{new Date(car.createdAt).toLocaleString('tr-TR')}</Text>
+          </View>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Müsteri Adı:</Text>
+            <Text style={styles.value}>{car.customerName}</Text>
+          </View>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Müsteri E-postası:</Text>
+            <Text style={styles.value}>{car.customerEmail}</Text>
+          </View>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Müsteri Telefonu:</Text>
+            <Text style={styles.value}>{car.customerPhone}</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Lastik Paketleri</Text>
+          {tyrePacks.map((tyrePack, index) => (
+            <View key={tyrePack.id} style={styles.tyrePackContainer}>
+              <Text style={styles.tyrePackTitle}>Lastik Paketi {index + 1}</Text>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Konum:</Text>
+                <Text style={styles.value}>{tyrePack.location}</Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Marka:</Text>
+                <Text style={styles.value}>{tyrePack.brand}</Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Ebat:</Text>
+                <Text style={styles.value}>{tyrePack.size}</Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Sezon:</Text>
+                <Text style={styles.value}>{tyrePack.season}</Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Text style={styles.label}>Adet:</Text>
+                <Text style={[styles.value, styles.accentColor]}>{tyrePack.count}</Text>
+              </View>
+              {qrCodes[tyrePack.location] && (
+                <Image
+                  src={qrCodes[tyrePack.location]}
+                  style={styles.qrCode}
+                />
+              )}
+            </View>
+          ))}
+        </View>
+      </Page>
+    </Document>
+  )
+}
 
 interface TireListProps {
   tyrePacks: TyrePack[];
@@ -166,15 +214,23 @@ interface TireListProps {
   onTyrePackAdded: () => void;
 }
 
-function TireList({ tyrePacks, car, onTyrePackAdded }: TireListProps) {
+function TireList({ tyrePacks: initialTyrePacks, car, onTyrePackAdded }: TireListProps) {
+  const [localTyrePacks, setLocalTyrePacks] = useState(initialTyrePacks);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState('')
+  
+  const filteredTires = localTyrePacks.filter(tire => 
+    tire.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    tire.size.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    tire.location.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = tyrePacks.slice(indexOfFirstItem, indexOfLastItem);
+  const currentItems = filteredTires.slice(indexOfFirstItem, indexOfLastItem);
 
-  const totalPages = Math.ceil(tyrePacks.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredTires.length / itemsPerPage);
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
@@ -182,6 +238,17 @@ function TireList({ tyrePacks, car, onTyrePackAdded }: TireListProps) {
 
   const handlePrevPage = () => {
     setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleDeleteTyre = async (tyreId: string) => {
+    if (window.confirm('Bu lastiği silmek istediğinizden emin misiniz?')) {
+      try {
+        await axios.delete(`/api/tyrepacks/${tyreId}`);
+        setLocalTyrePacks(localTyrePacks.filter(t => t.id !== tyreId));
+      } catch (error) {
+        console.error("Failed to delete tyre pack:", error);
+      }
+    }
   };
 
   return (
@@ -192,12 +259,18 @@ function TireList({ tyrePacks, car, onTyrePackAdded }: TireListProps) {
       <CardContent>
         <div className="flex justify-between items-center mb-6">
           <div className="relative w-64">
-            <Input type="text" placeholder="Marka" className="pl-10" />
+            <Input 
+              type="text" 
+              placeholder="Marka, Ebat veya Konum" 
+              className="pl-10" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
           </div>
           <div className="flex space-x-4">
             <PDFDownloadLink
-              document={<TyrePDFContent car={car} tyrePacks={tyrePacks} />}
+              document={<TyrePDFContent car={car} tyrePacks={localTyrePacks} />}
               fileName={`arac_${car.plate}_lastikler.pdf`}
             >
               {({ blob, url, loading, error }) => (
@@ -210,9 +283,35 @@ function TireList({ tyrePacks, car, onTyrePackAdded }: TireListProps) {
                 </Button>
               )}
             </PDFDownloadLink>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Mail className="mr-2 h-4 w-4" />
-              E-Posta
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground" 
+              onClick={async () => {
+                try {
+                  const pdfBlob = await pdf(<TyrePDFContent car={car} tyrePacks={localTyrePacks} />).toBlob();
+                  const file = new File([pdfBlob], `arac_${car.plate}_lastikler.pdf`, { type: 'application/pdf' });
+                  
+                  if (navigator.share) {
+                    await navigator.share({
+                      files: [file],
+                      title: `${car.plate} Lastik Bilgileri`,
+                      text: 'Araç lastik bilgileri ektedir.'
+                    });
+                  } else {
+                    
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent('Araç lastik bilgileri ektedir.')}&phone=${encodeURIComponent(car.customerPhone)}`;
+                      window.open(whatsappUrl, '_blank');
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                } catch (error) {
+                  console.error('Sharing failed:', error);
+                }
+              }}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              Whatsapp'a Yönlendir
             </Button>
           </div>
         </div>
@@ -237,9 +336,27 @@ function TireList({ tyrePacks, car, onTyrePackAdded }: TireListProps) {
                 <TableCell>{tire.season}</TableCell>
                 <TableCell>{tire.count}</TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon">
-                    <Mail className="h-4 w-4" />
-                  </Button>
+                  <div className="flex space-x-2">
+                    <TyrePackQRDialog 
+                      tyrePack={{
+                        ...tire,
+                        car: {
+                          plate: car.plate,
+                          customerName: car.customerName
+                        }
+                      }} 
+                    />
+                    <Button variant="ghost" size="icon">
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="icon"
+                      onClick={() => handleDeleteTyre(tire.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -275,14 +392,16 @@ export function CarDetailsComponent({ car, tyrePacks }: CarDetailsComponentProps
 
   const handleSaveNewTyre = async (newTyre: Omit<TyrePack, 'id' | 'carId'>) => {
     try {
-      const response = await axios.post<TyrePack>(`http://localhost:5260/api/tyrepacks/add-to-car/${car.id}`, newTyre);
+      const response = await axios.post<TyrePack>(
+        `/api/tyrepacks/add-to-car/${car.id}`, 
+        newTyre
+      );
       setLocalTyrePacks([...localTyrePacks, response.data]);
       setShowForm(false);
     } catch (error) {
       console.error("Failed to add new tyre pack:", error);
-      // Handle error (e.g., show an error message to the user)
     }
-  }
+  };
 
   const handleCancelNewTyre = () => {
     setShowForm(false)

@@ -13,6 +13,7 @@ interface Car {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  tyrePacks: TyrePack[];
 }
 
 interface TyrePack {
@@ -39,14 +40,10 @@ export default function CarDetailsPage() {
     const fetchCarDetails = async () => {
       try {
         setLoading(true)
-        const response = await axios.get<Car>(`http://localhost:5260/api/cars/${id}`)
+        const response = await axios.get<Car>(`/api/cars/${id}`)
         setCar(response.data)
         setHeaderText(`Araç Detayları - ${response.data.plate}`)
-        
-        // Fetch associated tire packs
-        const tyrePacksResponse = await axios.get<TyrePack[]>(`http://localhost:5260/api/tyrepacks?carId=${id}`)
-        setTyrePacks(tyrePacksResponse.data)
-        
+        setTyrePacks(response.data.tyrePacks)
         setLoading(false)
       } catch (err) {
         setError('Araç detayları yüklenirken bir hata oluştu')
