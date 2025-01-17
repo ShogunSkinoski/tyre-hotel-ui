@@ -33,7 +33,12 @@ export function TyrePackQRDialog({ tyrePack }: TyrePackQRProps) {
   })
 
   const downloadQR = () => {
-    const svg = document.querySelector(`#tyre-qr-${tyrePack.location} svg`) as SVGElement
+    const qrContainer = document.getElementById(`tyre-qr-${tyrePack.location}`)
+    const svg = qrContainer?.querySelector('svg')
+    if (!svg) {
+      console.error('SVG element not found')
+      return
+    }
     const svgData = new XMLSerializer().serializeToString(svg)
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
@@ -51,7 +56,7 @@ export function TyrePackQRDialog({ tyrePack }: TyrePackQRProps) {
       downloadLink.click()
     }
     
-    img.src = 'data:image/svg+xml;base64,' + btoa(svgData)
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)))
   }
 
   return (

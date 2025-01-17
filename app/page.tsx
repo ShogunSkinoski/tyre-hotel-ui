@@ -1,11 +1,10 @@
+'use client'
+import { useRouter } from "next/navigation";
 import TransactionsPage from "./transactions/page";
 
-
 export default function Main() {
-  return (
-
-    <TransactionsPage/>
-  
-  );
+  const router = useRouter();
+  router.push('/transactions');
+  return <TransactionsPage />;
 }
 

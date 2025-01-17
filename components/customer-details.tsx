@@ -115,12 +115,15 @@ export const TyrePDFContent: React.FC<TyrePDFContentProps> = ({ car, tyrePacks }
       
       for (const pack of tyrePacks) {
         const qrData = JSON.stringify({
+          id: pack.id,
+          carId: car.id,
           location: pack.location,
           brand: pack.brand,
           size: pack.size,
           season: pack.season,
           count: pack.count,
           car: {
+            id: car.id,
             plate: car.plate,
             customer: car.customerName
           }

@@ -41,3 +41,4 @@ prisma/dev.db-journal
 
 # Include backup files in git
 !backups/*.json
+/offline-build

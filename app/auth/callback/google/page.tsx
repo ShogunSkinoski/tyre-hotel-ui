@@ -1,18 +1,19 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import { notify } from '@/lib/utils'
 
 export default function GoogleCallbackPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   
   useEffect(() => {
     const handleCallback = async () => {
-      const code = searchParams.get('code')
-      const error = searchParams.get('error')
+      // Get code and error from URL params directly
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get('code')
+      const error = params.get('error')
 
       if (error) {
         notify.error('Google Drive yetkilendirme başarısız oldu')
@@ -53,7 +54,7 @@ export default function GoogleCallbackPage() {
     }
 
     handleCallback()
-  }, [router, searchParams])
+  }, [router])
 
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -63,4 +64,4 @@ export default function GoogleCallbackPage() {
       </div>
     </div>
   )
-} 
+}

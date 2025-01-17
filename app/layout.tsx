@@ -4,8 +4,10 @@ import "./globals.css";
 import { HeaderComponent } from "@/components/header";
 import { SidebarComponent } from "@/components/sidebar";
 import { HeaderProvider } from "@/contexts/header-context";
+import { SidebarProvider } from "@/contexts/sidebar-context";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Suspense } from "react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,20 +35,24 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Suspense fallback={<div>Loading...</div>}>
         <HeaderProvider>
-          <TooltipProvider>
-            <div className="flex h-screen bg-background">
-              <SidebarComponent />
-              <div className="flex-1 flex flex-col overflow-hidden">
-                <HeaderComponent />
-                <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-6">
-                  {children}
-                </main>
+          <SidebarProvider>
+            <TooltipProvider>
+              <div className="flex h-screen bg-background">
+                <SidebarComponent />
+                <div className="flex-1 flex flex-col overflow-hidden">
+                  <HeaderComponent />
+                  <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-3 md:p-6">
+                    {children}
+                  </main>
+                </div>
               </div>
-            </div>
-            <Toaster position="top-right" richColors />
-          </TooltipProvider>
+              <Toaster position="top-right" richColors />
+            </TooltipProvider>
+          </SidebarProvider>
         </HeaderProvider>
+        </Suspense>
       </body>
     </html>
   );

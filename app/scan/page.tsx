@@ -24,8 +24,8 @@ export default function ScanPage() {
       (data) => {
         try {
           const carData = JSON.parse(data)
-          if (carData.id) {
-            router.push(`/dashboard/${carData.id}`)
+          if (carData.carId) {
+            router.push(`/cars/${carData.carId}`)
           }
         } catch (err) {
           setError('Geçersiz QR kod')
